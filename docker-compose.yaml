@@ -22,23 +22,23 @@ services:
       - "5432:5432"
     restart: unless-stopped
 
-  app:
-    image: 'filestorage'
-    build:
-      context: ./
-    container_name: lokutson_filestorage_springboot
-    depends_on:
-      - lokutson-filestorage-minio
-      - lokutson_filestorage_postgres
-    environment:
-      SPRING_POSTGRESQL_URL: ${POSTGRESQL_URL}
-      SPRING_POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME}
-      SPRING_POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
-      SPRING_DATA_JPA_HIBERNATE_DDL_AUTO: ${JPA_HIBERNATE_DDL_AUTO}
-      SPRING_MINIO_URL: ${MINIO_URL}
-      SPRING_MINIO_USER: ${MINIO_USER}
-      SPRING_MINIO_PASSWORD: ${MINIO_PASSWORD}
-      SPRING_MINIO_BUCKET: ${MINIO_BUCKET}
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
+#  app:
+#    image: 'filestorage'
+#    build:
+#      context: ./
+#    container_name: lokutson_filestorage_springboot
+#    depends_on:
+#      - lokutson-filestorage-minio
+#      - lokutson_filestorage_postgres
+#    environment:
+#      SPRING_POSTGRESQL_URL: ${POSTGRESQL_URL}
+#      SPRING_POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME}
+#      SPRING_POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+#      SPRING_DATA_JPA_HIBERNATE_DDL_AUTO: ${JPA_HIBERNATE_DDL_AUTO}
+#      SPRING_MINIO_URL: ${MINIO_URL}
+#      SPRING_MINIO_USER: ${MINIO_USER}
+#      SPRING_MINIO_PASSWORD: ${MINIO_PASSWORD}
+#      SPRING_MINIO_BUCKET: ${MINIO_BUCKET}
+#    ports:
+#      - "8080:8080"
+#    restart: unless-stopped

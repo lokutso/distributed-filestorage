@@ -1,66 +1,79 @@
 package com.lokutson.filestorage.controller;
 
+import com.lokutson.filestorage.dto.FileDatabaseDto;
 import com.lokutson.filestorage.dto.FileStorageDto;
 import com.lokutson.filestorage.exception.DatabaseException;
 import com.lokutson.filestorage.exception.StorageException;
 import com.lokutson.filestorage.service.FileService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("filestorage")
 @RequiredArgsConstructor
 public class FileUploadController {
 
     private final FileService fileService;
 
+    @Operation(summary = "Get a list of files")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Got a list of files",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = FileDatabaseDto.class)))})})
     @GetMapping("/")
-    public String listFile(Model model) {
+    public List<FileDatabaseDto> listFile() {
 
-        model.addAttribute("listFileDatabaseDto", fileService.getAll());
-
-        return "index";
+        return fileService.getAll();
     }
 
-    @GetMapping("/download/{name:.+}")
-    @ResponseBody
-    public ResponseEntity<Resource> downloadFile(@PathVariable String name) throws IOException {
+    @Operation(summary = "Upload file")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File uploaded",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(type = "String", format = "byte"))})})
+    @GetMapping("/{name}")
+    public ResponseEntity<byte[]> downloadFile(@PathVariable String name) throws IOException {
 
         FileStorageDto fileStorageDto = fileService.getFile(name);
-        ByteArrayResource resource = new ByteArrayResource(fileStorageDto.getStream().readAllBytes());
         return ResponseEntity
                 .ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileStorageDto.getName() + "\"")
-                .body(resource);
+                .body(fileStorageDto.getStream().readAllBytes());
     }
 
-    @PostMapping("/upload")
-    public String uploadFile(@RequestParam("file") MultipartFile multipartFile, @RequestParam("description") String description) {
+    @Operation(summary = "Save file")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File saved")})
+    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void uploadFile(@RequestPart("file") MultipartFile multipartFile, @RequestParam("description") String description) {
 
         fileService.save(multipartFile, description);
-
-        return "redirect:/";
     }
 
-    @GetMapping("/delete/{name:.+}")
-    public String deleteFile(@PathVariable("name") String name) {
+    @Operation(summary = "Delete a file")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File deleted")})
+    @DeleteMapping("/{name}")
+    public void deleteFile(@PathVariable("name") String name) {
 
         fileService.delete(name);
-
-        return "redirect:/";
     }
 
     @ExceptionHandler(StorageException.class)
